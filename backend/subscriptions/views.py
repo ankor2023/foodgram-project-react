@@ -9,8 +9,6 @@ from rest_framework.response import Response
 from subscriptions.models import Subscription
 from subscriptions.serializers import SubscriptionSerializer
 
-#User = get_user_model()
-
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
