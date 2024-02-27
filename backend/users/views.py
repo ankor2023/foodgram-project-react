@@ -8,15 +8,19 @@ from rest_framework.response import Response
 
 from subscriptions.models import Subscription
 from subscriptions.serializers import SubscriptionSerializer
-from users.serializers import PasswordSerializer, UserSerializer
+from users.serializers import PasswordSerializer, UserCreateSerializer, UserSerializer
 
 User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (AllowAny,)
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST',):
+            return UserCreateSerializer
+        return UserSerializer
 
     @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
@@ -41,10 +45,8 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             if user == author:
                 return Response({'errors': 'Попытка подписаться на самого себя.'}, status=status.HTTP_400_BAD_REQUEST)
-                #raise serializers.ValidationError('Попытка подписаться на самого себя.')
             if Subscription.objects.filter(user=user, author=author):
                 return Response({'errors': f'Вы уже подписаны на {author.username}.'}, status=status.HTTP_400_BAD_REQUEST)
-                #raise serializers.ValidationError(f'Вы уже подписаны на {author.username}.')
 
             subscription = Subscription(user=user, author=author)
             serializer = SubscriptionSerializer(subscription, context={'request': request})

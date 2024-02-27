@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from rest_framework import serializers
@@ -14,8 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_subscribed', 'password')
-        write_only_fields = ('password',)
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_subscribed', )
 
     def get_is_subscribed(self, obj):
         if not self.context:
@@ -23,6 +23,31 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return user.is_authenticated and Subscription.objects.filter(user=user, author=obj).exists()
 
+
+class UserCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password')
+        extra_kwargs = {
+                'password': {'write_only': True},
+                'email': {'required': True, 'allow_blank': False},
+                'first_name': {'required': True, 'allow_blank': False},
+                'last_name': {'required': True, 'allow_blank': False},
+        }
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value):
+            raise serializers.ValidationError('Поле должно быть уникальным.')
+        return value
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value):
+            raise serializers.ValidationError('Поле должно быть уникальным.')
+        return value
+
+    def validate_password(self, value):
+        return make_password(value)
 
 
 
@@ -44,37 +69,3 @@ class PasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(list(e.messages))
         return value
 
-
-#class SubscriptionSerializer(serializers.ModelSerializer):
-#    email = serializers.ReadOnlyField(source='author.email')
-#    id = serializers.ReadOnlyField(source='author.id')
-#    username = serializers.ReadOnlyField(source='author.username')
-#    first_name = serializers.ReadOnlyField(source='author.first_name')
-#    last_name = serializers.ReadOnlyField(source='author.last_name')
-#
-#    is_subscribed = serializers.SerializerMethodField()
-#    recipes = serializers.SerializerMethodField()
-#    recipes_count = serializers.SerializerMethodField()
-#
-#    class Meta:
-#        model = User
-#        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count')
-#
-#
-#    def get_is_subscribed(self, obj):
-#        user = self.context.get('request').user
-#        return user.is_authenticated and Subscription.objects.filter(user=user, author=obj).exists()
-#
-#    def get_recipes_count(self, obj):
-#        return obj.recipes.count()
-#
-#    def get_recipes(self, obj):
-#        from recipes.serializers import RecipeSimpleSerializer
-#        request = self.context.get('request')
-#        limit = request.GET.get('recipes_limit')
-#        recipes = obj.recipes.all()
-#        if limit and limit.isdigit():
-#            recipes = recipes[:int(limit)]
-#        return RecipeSimpleSerializer(recipes, many=True).data
-#
-#
