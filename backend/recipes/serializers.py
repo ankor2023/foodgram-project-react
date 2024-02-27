@@ -76,7 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeAddChangeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField()
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientSimpleSerializer(source='ingredients_in_recipe', many=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
@@ -119,3 +119,30 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         return RecipeSerializer(value).data
+
+    def validate_ingredients(self, value):
+        if not value:
+            raise serializers.ValidationError({'ingredients': 'Пустой список.'})
+
+        if len(value) != len(set([ingredient['ingredient']['id'].id for ingredient in value])):
+            raise serializers.ValidationError({'ingredients': 'Значения должны быть уникальны.'})
+
+        return value
+
+    
+    def validate_tags(self, value):
+        if not value:
+            raise serializers.ValidationError({'tags': 'Пустой список.'})
+
+        if len(value) != len(set([tag.id for tag in value])):
+            raise serializers.ValidationError({'tags': 'Значения должны быть уникальны.'})
+
+        return value
+
+    def validate(self, obj):
+        print(obj)
+        for field in ('name', 'text', 'cooking_time', 'image', 'tags', 'ingredients_in_recipe'):
+            if not obj.get(field):
+                raise serializers.ValidationError({f'{field}': 'Поле обязательно.'})
+
+        return obj

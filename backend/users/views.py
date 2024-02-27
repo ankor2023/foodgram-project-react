@@ -54,7 +54,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         else:
-            get_object_or_404(Subscription, user=user, author=author).delete()
+            try:
+                get_object_or_404(Subscription, user=user, author=author).delete()
+            except Exception as inst:
+                raise serializers.ValidationError(inst)
+                
             return Response({'detail': 'OK'}, status=status.HTTP_204_NO_CONTENT)
 
 

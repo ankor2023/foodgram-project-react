@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from backend import settings
@@ -11,8 +12,8 @@ User = get_user_model()
 class Recipe(models.Model):
     name = models.CharField('Название', max_length=settings.CHAR_FIELD_MAX_LEN)
     text = models.TextField('Описание')
-    cooking_time = models.PositiveSmallIntegerField('Время приготовления')
-    image = models.ImageField('Картинка', upload_to='recipes/', blank=True)
+    cooking_time = models.PositiveSmallIntegerField('Время приготовления', validators=(MinValueValidator(1),))
+    image = models.ImageField('Картинка', upload_to='recipes/')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes', verbose_name='Автор')
     ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredient')
     tags = models.ManyToManyField(Tag, through='RecipeTag')
@@ -30,8 +31,8 @@ class Recipe(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, related_name='ingredients_in_recipe', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveSmallIntegerField('Количество', null=False, default=1)
+    ingredient = models.ForeignKey(Ingredient, related_name='recipes_have_ingredient', on_delete=models.CASCADE)
+    amount = models.PositiveSmallIntegerField('Количество', null=False, validators=(MinValueValidator(1),))
 
     class Meta:
         verbose_name = 'Ингридиента рецепта'
