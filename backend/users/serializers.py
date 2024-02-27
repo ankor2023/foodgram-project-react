@@ -62,10 +62,11 @@ class PasswordSerializer(serializers.Serializer):
         raise serializers.ValidationError('Введён неправильный пароль')
 
     def validate_new_password(self, value):
-        user = self.context['request'].user
-        try:
-            validate_password(value, user)
-        except django_exceptions.ValidationError as e:
-            raise serializers.ValidationError(list(e.messages))
-        return value
+        return make_password(value)
+#        user = self.context['request'].user
+#        try:
+#            validate_password(value, user)
+#        except django_exceptions.ValidationError as e:
+#            raise serializers.ValidationError(list(e.messages))
+#        return value
 

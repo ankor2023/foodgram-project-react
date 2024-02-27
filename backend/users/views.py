@@ -32,7 +32,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = PasswordSerializer(data=request.data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
 
-        self.request.user.set_password(serializer.data["new_password"])
+        self.request.user.password = serializer.validated_data['new_password']
         self.request.user.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
