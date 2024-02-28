@@ -15,16 +15,18 @@ class Unit(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField('Название', max_length=settings.CHAR_FIELD_MAX_LEN, unique=True)
+    name = models.CharField('Название', max_length=settings.CHAR_FIELD_MAX_LEN, unique=False)
     measurement_unit = models.ForeignKey(
-        Unit, on_delete=models.SET_NULL, related_name='ingredients', null=True, verbose_name='Единица измерения'
+        Unit, on_delete=models.CASCADE, related_name='ingredients', verbose_name='Единица измерения'
     )
     
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = (
+            models.UniqueConstraint(fields=('name', 'measurement_unit'), name='unique_ingredient'),
+        )
 
     def __str__(self):
         return self.name
-

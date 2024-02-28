@@ -140,7 +140,6 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, obj):
-        print(obj)
         for field in ('name', 'text', 'cooking_time', 'image', 'tags', 'ingredients_in_recipe'):
             if not obj.get(field):
                 raise serializers.ValidationError({f'{field}': 'Поле обязательно.'})
