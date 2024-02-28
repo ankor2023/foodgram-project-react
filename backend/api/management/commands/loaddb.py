@@ -1,12 +1,9 @@
 import csv
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from ingredients.models import Ingredient, Unit
-
-User = get_user_model()
 
 
 class Command(BaseCommand):
