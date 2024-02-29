@@ -63,6 +63,11 @@ sudo docker compose -f docker-compose.production.yml exec backend python cp -r /
 - Docker
 - Nginx
 
+## Работающий пример
+[foodgram](http://food2023.ddns.net)
+Login: test@mail.ru
+Password: 123
+
 ## Информация об авторе:
 [Яндекс Практикум](http://praktikum.yandex.ru)
 

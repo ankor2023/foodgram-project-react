@@ -5,7 +5,7 @@ from ingredients.serializers import IngredientSerializer
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    http_method_names = ['get',]
+    http_method_names = ('get', )
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter, )
