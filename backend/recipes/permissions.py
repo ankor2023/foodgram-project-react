@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsOwnerOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
     """Anonymous user can read.
     Authenticated user can create.
@@ -12,4 +13,3 @@ class IsOwnerOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
             or (request.user.is_authenticated and request.user.is_superuser)
             or obj.author == request.user
         )
-

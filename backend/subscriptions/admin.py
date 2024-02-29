@@ -5,6 +5,4 @@ from subscriptions.models import Subscription
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display =  ('author', 'user')
-
-
+    list_display = ('author', 'user')

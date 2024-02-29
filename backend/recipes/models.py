@@ -6,18 +6,22 @@ from backend import settings
 from ingredients.models import Ingredient
 from tags.models import Tag
 
-
 User = get_user_model()
 
-class Recipe(models.Model):
-    name = models.CharField('Название', max_length=settings.CHAR_FIELD_MAX_LEN)
-    text = models.TextField('Описание')
-    cooking_time = models.PositiveSmallIntegerField('Время приготовления', validators=(MinValueValidator(1),))
-    image = models.ImageField('Картинка', upload_to='recipes/')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes', verbose_name='Автор')
-    ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredient')
-    tags = models.ManyToManyField(Tag, through='RecipeTag')
 
+class Recipe(models.Model):
+    name = models.CharField('Название',
+                            max_length=settings.CHAR_FIELD_MAX_LEN)
+    text = models.TextField('Описание')
+    cooking_time = models.PositiveSmallIntegerField('Время приготовления',
+                                                    validators=[
+                                                        MinValueValidator(1)])
+    image = models.ImageField('Картинка', upload_to='recipes/')
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='recipes', verbose_name='Автор')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         through='RecipeIngredient')
+    tags = models.ManyToManyField(Tag, through='RecipeTag')
 
     class Meta:
         ordering = ('-id',)
@@ -28,11 +32,15 @@ class Recipe(models.Model):
         return self.name
 
 
-
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, related_name='ingredients_in_recipe', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, related_name='recipes_have_ingredient', on_delete=models.CASCADE)
-    amount = models.PositiveSmallIntegerField('Количество', null=False, validators=(MinValueValidator(1),))
+    recipe = models.ForeignKey(Recipe, related_name='ingredients_in_recipe',
+                               on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient,
+                                   related_name='recipes_have_ingredient',
+                                   on_delete=models.CASCADE)
+    amount = models.PositiveSmallIntegerField('Количество', null=False,
+                                              validators=(
+                                                  MinValueValidator(1),))
 
     class Meta:
         verbose_name = 'Ингридиента рецепта'
@@ -40,6 +48,7 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f'{self.recipe} {self.ingredient}'
+
 
 class RecipeTag(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
@@ -54,8 +63,10 @@ class RecipeTag(models.Model):
 
 
 class UserFavorite(models.Model):
-    user = models.ForeignKey(User, related_name='favorites', on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, related_name='users_like_recipe',  on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='favorites',
+                             on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, related_name='users_like_recipe',
+                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Любимый рецепт'
@@ -64,9 +75,12 @@ class UserFavorite(models.Model):
     def __str__(self):
         return f'{self.user} любит {self.recipe}'
 
+
 class UserShoppingCart(models.Model):
-    user = models.ForeignKey(User, related_name='items', on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, related_name='users_add_recipe',  on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='items',
+                             on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, related_name='users_add_recipe',
+                               on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Список покупок'
@@ -74,4 +88,3 @@ class UserShoppingCart(models.Model):
 
     def __str__(self):
         return f'{self.user} купит {self.recipe}'
-

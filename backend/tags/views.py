@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import filters, viewsets
 
 from tags.models import Tag
@@ -11,4 +10,3 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.SearchFilter, )
     pagination_class = None
     search_fields = ('^name', )
-
