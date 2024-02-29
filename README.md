@@ -66,6 +66,7 @@ sudo docker compose -f docker-compose.production.yml exec backend python cp -r /
 ## Работающий пример
 [foodgram](http://food2023.ddns.net)
 Login: test@mail.ru
+Username: adm
 Password: 123
 
 ## Информация об авторе:
