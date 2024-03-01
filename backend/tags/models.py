@@ -19,6 +19,7 @@ class Tag(models.Model):
                             unique=True)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Таг'
         verbose_name_plural = 'Таги'
 

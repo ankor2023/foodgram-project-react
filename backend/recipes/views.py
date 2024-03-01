@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -35,11 +36,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             try:
-                recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-            except Exception as inst:
+                recipe = Recipe.objects.get(id=kwargs['pk'])
+            except ObjectDoesNotExist as inst:
                 raise serializers.ValidationError(inst)
 
-            if UserFavorite.objects.filter(user=user, recipe=recipe):
+            if user.favorites.filter(recipe=recipe):
                 return Response({'errors':
                                  f'Рецепт {recipe} уже в избранном.'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -53,9 +54,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
             try:
-                get_object_or_404(UserFavorite,
-                                  user=user, recipe=recipe).delete()
-            except Exception as inst:
+                UserFavorite.objects.get(user=user, recipe=recipe).delete()
+            except ObjectDoesNotExist as inst:
                 raise serializers.ValidationError(inst)
 
             return Response({'detail': 'OK'},
@@ -68,11 +68,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             try:
-                recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-            except Exception as inst:
+                recipe = Recipe.objects.get(id=kwargs['pk'])
+            except ObjectDoesNotExist as inst:
                 raise serializers.ValidationError(inst)
 
-            if UserShoppingCart.objects.filter(user=user, recipe=recipe):
+            if user.items.filter(recipe=recipe):
                 return Response({'errors':
                                  f'Рецепт {recipe} уже в списке покупок.'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -84,9 +84,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         else:
             recipe = get_object_or_404(Recipe, id=kwargs['pk'])
             try:
-                get_object_or_404(UserShoppingCart,
-                                  user=user, recipe=recipe).delete()
-            except Exception as inst:
+                UserShoppingCart.objects.get(user=user, recipe=recipe).delete()
+            except ObjectDoesNotExist as inst:
                 raise serializers.ValidationError(inst)
 
             return Response({'detail': 'OK'},

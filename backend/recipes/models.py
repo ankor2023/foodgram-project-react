@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from backend import settings
@@ -14,8 +14,10 @@ class Recipe(models.Model):
                             max_length=settings.CHAR_FIELD_MAX_LEN)
     text = models.TextField('Описание')
     cooking_time = models.PositiveSmallIntegerField('Время приготовления',
-                                                    validators=[
-                                                        MinValueValidator(1)])
+                                                    validators=(
+                                                        MinValueValidator(settings.MIN_SMALL_NUMBER),
+                                                        MaxValueValidator(settings.MAX_SMALL_NUMBER),
+                                                        ))
     image = models.ImageField('Картинка', upload_to='recipes/')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes', verbose_name='Автор')
@@ -40,9 +42,13 @@ class RecipeIngredient(models.Model):
                                    on_delete=models.CASCADE)
     amount = models.PositiveSmallIntegerField('Количество', null=False,
                                               validators=(
-                                                  MinValueValidator(1),))
+                                                        MinValueValidator(settings.MIN_SMALL_NUMBER),
+                                                        MaxValueValidator(settings.MAX_SMALL_NUMBER),
+                                                  )
+                                              )
 
     class Meta:
+        ordering = ('recipe__name', 'ingredient__name')
         verbose_name = 'Ингридиента рецепта'
         verbose_name_plural = 'Ингридиенты рецепта'
 
@@ -55,6 +61,7 @@ class RecipeTag(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('recipe__name', 'tag__name')
         verbose_name = 'Таг рецепта'
         verbose_name_plural = 'Таги рецепта'
 
@@ -69,6 +76,7 @@ class UserFavorite(models.Model):
                                on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('user__username', 'recipe__name')
         verbose_name = 'Любимый рецепт'
         verbose_name_plural = 'Любимые рецепты'
 
@@ -83,6 +91,7 @@ class UserShoppingCart(models.Model):
                                on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('user__username', 'recipe__name')
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
 

@@ -22,16 +22,15 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                   'recipes', 'recipes_count')
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         return (user.is_authenticated
-                and Subscription.objects.filter(user=user,
-                                                author=obj.author).exists())
+                and user.authors.filter(author=obj.author.id).exists())
 
     def get_recipes_count(self, obj):
         return obj.author.recipes.count()
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
+        request = self.context['request']
         limit = request.GET.get('recipes_limit')
         recipes = obj.author.recipes.all()
         if limit and limit.isdigit():

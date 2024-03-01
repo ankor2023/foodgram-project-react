@@ -3,6 +3,7 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+from backend import settings
 from recipes.models import (Ingredient, Recipe, RecipeIngredient,
                             UserFavorite, UserShoppingCart)
 from tags.models import Tag
@@ -36,6 +37,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSimpleSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient.id', queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField(min_value=settings.MIN_SMALL_NUMBER, max_value=settings.MAX_SMALL_NUMBER)
 
     class Meta:
         model = RecipeIngredient
@@ -66,16 +68,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         if not self.context:
             return False
-        user = self.context.get('request').user
-        return user.is_authenticated and UserFavorite.objects.filter(
-            user=user, recipe=obj).exists()
+        user = self.context['request'].user
+        return user.is_authenticated and user.favorites.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         if not self.context:
             return False
-        user = self.context.get('request').user
-        return user.is_authenticated and UserShoppingCart.objects.filter(
-            user=user, recipe=obj).exists()
+        user = self.context['request'].user
+        return user.is_authenticated and user.items.filter(recipe=obj).exists()
 
 
 class RecipeAddChangeSerializer(serializers.ModelSerializer):
@@ -85,11 +85,20 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
         source='ingredients_in_recipe', many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
+    coocking_time = serializers.IntegerField(min_value=settings.MIN_SMALL_NUMBER, max_value=settings.MAX_SMALL_NUMBER)
 
     class Meta:
         model = Recipe
         fields = ('name', 'text', 'ingredients', 'image',
                   'cooking_time', 'tags', 'author')
+
+    def create_ingredients(recipe, ingredients):
+        bulk_list = list()
+        for ingredient in ingredients:
+            bulk_list.append(RecipeIngredient(recipe=recipe,
+                                          ingredient=ingredient['ingredient']['id'],
+                                          amount=ingredient['amount']))
+
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients_in_recipe')
@@ -97,12 +106,8 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
 
         recipe = Recipe.objects.create(
             author=self.context['request'].user, **validated_data)
-        for ingredient in ingredients:
-            current_ingredient = ingredient['ingredient']['id']
-            RecipeIngredient.objects.create(
-                recipe=recipe, ingredient=current_ingredient,
-                amount=ingredient['amount'])
 
+        create_ingredients(recipe, ingredients)
         recipe.tags.set(tags)
 
         return recipe
@@ -114,13 +119,7 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
         instance.ingredients.clear()
         instance.tags.clear()
 
-        for ingredient in ingredients:
-            current_ingredient = ingredient['ingredient']['id']
-            RecipeIngredient.objects.get_or_create(
-                recipe=instance,
-                ngredient=current_ingredient,
-                amount=ingredient['amount'])
-
+        create_ingredients(instance, ingredients)
         instance.tags.set(tags)
 
         return super().update(instance, validated_data)
@@ -133,8 +132,8 @@ class RecipeAddChangeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'ingredients': 'Пустой список.'})
 
-        if len(value) != len(set([ingredient['ingredient']['id'].id
-                                  for ingredient in value])):
+        unique_ids = set([ingredient['ingredient']['id'].id for ingredient in value])
+        if len(value) != len(unique_ids):
             raise serializers.ValidationError(
                 {'ingredients': 'Значения должны быть уникальны.'})
 

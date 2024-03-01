@@ -12,6 +12,7 @@ class Unit(models.Model):
                                  null=True)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Единица измерения'
         verbose_name_plural = 'Единицы измерения'
 
@@ -29,6 +30,7 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        ordering = ('name', 'measurement_unit__name')
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         constraints = (
