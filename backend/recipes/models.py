@@ -13,11 +13,12 @@ class Recipe(models.Model):
     name = models.CharField('Название',
                             max_length=settings.CHAR_FIELD_MAX_LEN)
     text = models.TextField('Описание')
-    cooking_time = models.PositiveSmallIntegerField('Время приготовления',
-                                                    validators=(
-                                                        MinValueValidator(settings.MIN_SMALL_NUMBER),
-                                                        MaxValueValidator(settings.MAX_SMALL_NUMBER),
-                                                        ))
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления',
+        validators=(
+            MinValueValidator(settings.MIN_SMALL_NUMBER),
+            MaxValueValidator(settings.MAX_SMALL_NUMBER),
+        ))
     image = models.ImageField('Картинка', upload_to='recipes/')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes', verbose_name='Автор')
@@ -40,12 +41,12 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(Ingredient,
                                    related_name='recipes_have_ingredient',
                                    on_delete=models.CASCADE)
-    amount = models.PositiveSmallIntegerField('Количество', null=False,
-                                              validators=(
-                                                        MinValueValidator(settings.MIN_SMALL_NUMBER),
-                                                        MaxValueValidator(settings.MAX_SMALL_NUMBER),
-                                                  )
-                                              )
+    amount = models.PositiveSmallIntegerField(
+        'Количество', null=False,
+        validators=(
+            MinValueValidator(settings.MIN_SMALL_NUMBER),
+            MaxValueValidator(settings.MAX_SMALL_NUMBER),
+        ))
 
     class Meta:
         ordering = ('recipe__name', 'ingredient__name')
