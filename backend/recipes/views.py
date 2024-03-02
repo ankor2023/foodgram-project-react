@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -96,22 +98,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         ingredients_list = RecipeIngredient.objects.filter(
             recipe__users_add_recipe__user=request.user)
-        shopping_list = {}
+
+        shopping_items = defaultdict(int)
 
         for ingredient in ingredients_list:
-            if not shopping_list.get(ingredient.ingredient):
-                shopping_list[ingredient.ingredient] = 0
-            shopping_list[ingredient.ingredient] += ingredient.amount
+            shopping_items[ingredient.ingredient] += ingredient.amount
 
-        shopping_list_text = 'СПИСОК ПОКУПОК:\n'
-        shopping_list_text += '\n'.join([f'{i+1}. '
+        shopping_items_text = 'СПИСОК ПОКУПОК:\n'
+        shopping_items_text += '\n'.join([f'{i+1}. '
                                          + f'{ingredient.name} - '
-                                         + f'{shopping_list[ingredient]}, '
+                                         + f'{shopping_items[ingredient]}, '
                                          + f'{ingredient.measurement_unit}'
                                          for i, ingredient
-                                         in enumerate(shopping_list.keys())])
+                                         in enumerate(shopping_items.keys())])
 
-        response = HttpResponse(shopping_list_text,
+        response = HttpResponse(shopping_items_text,
                                 content_type='text/plain,charset=utf8')
         response['Content-Disposition'] = 'attachment; filename=file.txt'
 
